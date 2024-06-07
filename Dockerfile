@@ -45,6 +45,7 @@ RUN <<EOF
         bash-doc            \
         ca-certificates     \
         curl                \
+        docker-cli          \
         findmnt             \
         fuse                \
         libacl              \

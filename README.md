@@ -300,7 +300,7 @@ want to make sure that the data is consistent and doesn't change while the backu
 easiest way to ensure this is to stop the affected containers before the backup and restart them
 afterwards. You can use the appropriate [borgmatic
 hooks](https://torsion.org/borgmatic/docs/how-to/add-preparation-and-cleanup-steps-to-backups/) and
-[control the docker engine through the API](https://docs.docker.com/engine/api/) using the hosts
+control the docker engine through the docker client provided in the container image using the hosts
 docker socket.
 
 Please note that you might want to prefer the `*_everything` hooks to the `*_backup` hooks, as
@@ -317,18 +317,20 @@ that you want to control.
 hooks:
     before_everything:
         - echo "Stopping containers..."
-        - 'echo -ne "POST /v1.41/containers/<container1-name>/stop HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc local:/var/run/docker.sock 80 > /dev/null && echo "Stopped Container 1" || echo "Failed to stop Container 1"'
-        - 'echo -ne "POST /v1.41/containers/<container2-name>/stop HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc local:/var/run/docker.sock 80 > /dev/null && echo "Stopped Container 2" || echo "Failed to stop Container 2"'
+        - docker stop <container1-name> && echo "Stopped Container 1" || echo "Failed to stop Container 1"
+        - docker stop <container2-name> && echo "Stopped Container 2" || echo "Failed to stop Container 2"
         - echo "Containers stopped."
         - echo "Starting a backup."
 
     after_everything:
         - echo "Finished a backup."
         - echo "Restarting containers..."
-        - 'echo -ne "POST /v1.41/containers/<container1-name>/start HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc local:/var/run/docker.sock 80 > /dev/null && echo "Started Container 1" || echo "Failed to start Container 1"'
-        - 'echo -ne "POST /v1.41/containers/<container2-name>/start HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc local:/var/run/docker.sock 80 > /dev/null && echo "Started Container 2" || echo "Failed to start Container 2"'
+        - docker start <container1-name> && echo "Started Container 1" || echo "Failed to start Container 1"
+        - docker start <container2-name> && echo "Started Container 2" || echo "Failed to start Container 2"
         - echo "Containers restarted."
 ```
+
+This way you can also use `docker exec` to run a database dump script from within a container for example.
 
 ### Mount an archive as FUSE filesystem
 
